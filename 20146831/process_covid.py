@@ -1,8 +1,13 @@
-# FIXME add needed imports
+import json
 
 def load_covid_data(filepath):
-    raise NotImplementedError
-
+    with open(filepath, "r") as read_file:
+        data = json.load(read_file)
+    if set(['evolution', 'metadata', 'region']) == set(data.keys()) and set(data.get('metadata').keys()) == set(['time-range', 'age_binning']) and set(data.get('region').keys()) == set(['name', 'key', 'latitude', 'longitude', 'elevation', 'area', 'population', 'open_street_maps', 'noaa_station', 'noaa_distance']) :
+        pass
+    else:
+        raise ImportError('Incorrect keys in .json file')
+    return(data)
 def cases_per_population_by_age(input_data):
     raise NotImplementedError
 
