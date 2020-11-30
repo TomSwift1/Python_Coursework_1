@@ -47,9 +47,13 @@ def hospital_vs_confirmed(data):
         dat_data = data['evolution'][date]
         new_hosp = dat_data['hospitalizations']['hospitalized']['new']['all']
         new_cases = dat_data['epidemiology']['confirmed']['new']['all']
-        ratio = new_hosp/new_cases
-        dates_arr.append(date)
-        ratios_arr.append(ratio)
+        if new_hosp == [] or new_cases == []:
+            pass
+        else:
+            ratio = new_hosp/new_cases
+            dates_arr.append(date)
+            ratios_arr.append(ratio)
+            
     return dates_arr,ratios_arr
 
 def generate_data_plot_confirmed(data, sex, max_age, status):
