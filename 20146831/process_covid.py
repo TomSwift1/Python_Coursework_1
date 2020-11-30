@@ -66,18 +66,22 @@ def generate_data_plot_confirmed(data, sex, max_age, status):
     #Initializae empty lists
     dates_arr = []
     conf_arr = []
-
+    if status == []:
+        status = 'new'
+    else:
+         pass
+        
     if len(sex)>0:
         #Extract dates
         dates = data['evolution'].keys()
         #Loop over dates to create list with cases and list with corresponding dates
         for date in dates:
             dat_data = data['evolution'][date]
-            new_confirmed = dat_data['epidemiology']['confirmed']['new'][sex]
+            new_confirmed = dat_data['epidemiology']['confirmed'][status][sex]
             dates_arr.append(date)
             conf_arr.append(new_confirmed)
     
-    if max_age>0:
+    elif max_age>0:
         #Extract dates
         dates = data['evolution'].keys()
         
@@ -95,12 +99,13 @@ def generate_data_plot_confirmed(data, sex, max_age, status):
                 n += 1
         for date in dates:
             dat_data = data['evolution'][date]
-            new_confirmed = sum(dat_data['epidemiology']['confirmed']['new']['age'][0:n])
+            new_confirmed = sum(dat_data['epidemiology']['confirmed'][status]['age'][0:n])
             dates_arr.append(date)
             conf_arr.append(new_confirmed)
+    
     return dates_arr,conf_arr
         
-def create_confirmed_plot(input_data, sex=False, max_ages=[], status=..., save=...):
+def create_confirmed_plot(input_data, sex=False, max_ages=[], status=..., save=False):
     # Check that only sex or age is specified
     bool_1 = sex
     bool_2 = len(max_ages)>0
@@ -111,23 +116,35 @@ def create_confirmed_plot(input_data, sex=False, max_ages=[], status=..., save=.
     
     # Only runs when the sex plot is required
     if sex:
+        type_plot = 'sex'
         for sex in ['male', 'female']:
             date,confirmed = generate_data_plot_confirmed(input_data, sex, max_age=0,status=[])
-            plt.plot(date, confirmed,label=sex)
+            if sex == 'male':
+                plt.plot(date, confirmed,label=str(status)+' '+str(sex),color='green')
+            elif sex == 'female':
+                plt.plot(date, confirmed,label=str(status)+' '+str(sex),color='purple')
     
     # Only runs  when the age plot is required
     if bool_2:
+        type_plot = 'max_age'
         for age in max_ages:
             date,confirmed = generate_data_plot_confirmed(input_data, sex=[], max_age = age,status=[])
-            plt.plot(date, confirmed,label='Age <' +str(age))
-    
+            if age <= 25:
+                plt.plot(date, confirmed,label=str(status)+' Age <' +str(age),color='green')
+            elif age <= 50:
+                plt.plot(date, confirmed,label=str(status)+' Age <'+str(age),color='orange')
+            elif age <= 75:
+                plt.plot(date, confirmed,label=str(status)+' Age <'+str(age),color='purple')
+            else:
+                plt.plot(date, confirmed,label=str(status)+' Age <'+str(age),color='pink')
+                
     fig.autofmt_xdate()  # To show dates nicely
     plt.title('Confirmed cases in ' + str(input_data['region']['name']))
     plt.xlabel('Dates')
     plt.ylabel('Confirmed Cases')
     plt.legend()
-    # TODO Change logic to show or save it into a '{region_name}_evolution_cases_{type}.png'
-    #      where type may be sex or age
+    if save:
+        plt.savefig(str(input_data['region']['name'])+'_evolution_cases_'+str(type_plot)+'.png')
     plt.show()
 
 def compute_running_average(data, window):
