@@ -8,8 +8,22 @@ def load_covid_data(filepath):
     else:
         raise ImportError('Incorrect keys in .json file')
     return(data)
+
 def cases_per_population_by_age(input_data):
-    raise NotImplementedError
+    hosp_age_bin = input_data['metadata']['age_binning']['hospitalizations']
+    pop_age_bin = input_data['metadata']['age_binning']['population']
+    nested_dict = {}
+    for i in range(len(pop_age_bin)):
+        nested_dict[pop_age_bin[i]] = {}
+
+    dates = input_data['evolution'].keys()
+    for date in dates:
+        dat_data = input_data['evolution'][date]['epidemiology']['confirmed']['total']['age']
+
+        for i in range(len(pop_age_bin)):
+            nested_dict[pop_age_bin[i]][date] = dat_data[i]
+    
+    return nested_dict
 
 def hospital_vs_confirmed(input_data):
     raise NotImplementedError
