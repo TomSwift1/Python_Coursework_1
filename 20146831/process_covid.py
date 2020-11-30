@@ -3,20 +3,29 @@ import json
 def load_covid_data(filepath):
     with open(filepath, "r") as read_file:
         data = json.load(read_file)
+    
+    #Check the loaded dataset has the correct keys
     if set(['evolution', 'metadata', 'region']) == set(data.keys()) and set(data.get('metadata').keys()) == set(['time-range', 'age_binning']) and set(data.get('region').keys()) == set(['name', 'key', 'latitude', 'longitude', 'elevation', 'area', 'population', 'open_street_maps', 'noaa_station', 'noaa_distance']) :
         pass
     else:
+        #Raise error if incorrect keys
         raise ImportError('Incorrect keys in .json file')
     return(data)
 
 def cases_per_population_by_age(input_data):
+    #Check the binning of hospitalization and population
     hosp_age_bin = input_data['metadata']['age_binning']['hospitalizations']
     pop_age_bin = input_data['metadata']['age_binning']['population']
+    
+    #Initialize empty dictionary
     nested_dict = {}
     for i in range(len(pop_age_bin)):
+        #Add layer for each age bin
         nested_dict[pop_age_bin[i]] = {}
-
+    
+    #Extract dates
     dates = input_data['evolution'].keys()
+    #Loop over dates to extract age binned data
     for date in dates:
         dat_data = input_data['evolution'][date]['epidemiology']['confirmed']['total']['age']
 
