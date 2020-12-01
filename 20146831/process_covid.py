@@ -166,26 +166,26 @@ def create_confirmed_plot(input_data, sex=False, max_ages=[], status='total', sa
     plt.show()
 
 def compute_running_average(input_data, window):
-    if (a%2) == 0:
+    if (window%2) == 0:
         raise ValueError('Window must be an odd number')
     else:
         means = []
-        each_side = int((window_size-1)/2)
+        each_side = int((window-1)/2)
         if input_data.count(None) == 0:
             pass
         else:
             input_data = [0 if x is None else x for x in input_data]
         
-        for i in range(len(input_data)+1):
+        for i in range(len(input_data)):
             data = input_data[(i-each_side):(i+each_side+1)]
-            if len(data)< window_size:
+            if len(data)< window:
                 means.append(None)
             else:
                 mean = sum(data)/len(data)
-                    means.append(mean)
+                means.append(mean)
     return means
 
-def simple_derivative(data):
+def simple_derivative(input_data):
     deriv = []
 
     for i in range(len(input_data)):
@@ -199,8 +199,31 @@ def simple_derivative(data):
     return deriv
 
 def count_high_rain_low_tests_days(input_data):
-    raise NotImplementedError
+    dates = input_data['evolution'].keys()
+    rain = []
+    tests = []
+    dates_list = []
+    for date in dates:
+        tests.append(input_data['evolution'][date]['epidemiology']['tested']['new']['all'])
+        rain.append(input_data['evolution'][date]['weather']['rainfall'])
 
+    rain_der = simple_derivative(rain)
+    smooth_test = compute_running_average(tests,7)
+    test_der = simple_derivative(smooth_test)
+
+    n=0
+    m=0
+    for i in range(len(test_der)):
+        if test_der[i]==None or rain_der[i]==None:
+            pass
+        else:
+            if test_der[i]<0 and rain_der[i]>0:
+                n+=1
+            elif rain_der[i] > 0:
+                m += 1
+                continue
+    ratio = n/m
+    return ratio
 def check_age_bins(hosp_age_bin,pop_age_bin):
     lower_hosp = []
     upper_hosp = []
