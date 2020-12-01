@@ -61,6 +61,7 @@ def hospital_vs_confirmed(data):
     #Extract dates
     dates = data['evolution'].keys()
     #Loop over dates to create list with ratios and list with corresponding dates
+    
     for date in dates:
         dat_data = data['evolution'][date]
         new_hosp = dat_data['hospitalizations']['hospitalized']['new']['all']
