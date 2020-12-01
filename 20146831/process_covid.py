@@ -17,6 +17,12 @@ def cases_per_population_by_age(input_data):
     #Check the binning of hospitalization and population
     hosp_age_bin = input_data['metadata']['age_binning']['hospitalizations']
     pop_age_bin = input_data['metadata']['age_binning']['population']
+    
+    if hosp_age_bin == pop_age_bin:
+        pass
+    else:
+        comp = check_age_bins(hosp_age_bin,pop_age_bin)
+    
     population_age = input_data['region']['population']['age']
     #Initialize empty dictionary
     nested_dict = {}
@@ -26,12 +32,24 @@ def cases_per_population_by_age(input_data):
     
     #Extract dates
     dates = input_data['evolution'].keys()
-    #Loop over dates to extract age binned data
-    for date in dates:
-        dat_data = input_data['evolution'][date]['epidemiology']['confirmed']['total']['age']
+    
+    #Check whether rebinning is needed
+    if status:
+        #Loop over dates to extract age binned data
+        for date in dates:
+            dat_data = input_data['evolution'][date]['epidemiology']['confirmed']['total']['age']
 
-        for i in range(len(pop_age_bin)):
-            nested_dict[pop_age_bin[i]][date] = dat_data[i]/population_age[i]
+            for i in range(len(pop_age_bin)):
+                #Rebin data here
+                nested_dict[pop_age_bin[i]][date] = dat_data[i]/population_age[i]
+    else:
+        #Loop over dates to extract age binned data
+        for date in dates:
+            dat_data = input_data['evolution'][date]['epidemiology']['confirmed']['total']['age']
+
+            for i in range(len(pop_age_bin)):
+                #Rebin data here
+                nested_dict[pop_age_bin[i]][date] = dat_data[i]/population_age[i]
     
     return nested_dict
 
@@ -68,6 +86,9 @@ def generate_data_plot_confirmed(data, sex, max_age, status):
     conf_arr = []
     if status == []:
         status = 'new'
+        line_style = '--'
+    elif status == 'confirmed':
+        line_style = '-'
     else:
          pass
         
@@ -155,3 +176,44 @@ def simple_derivative(data):
 
 def count_high_rain_low_tests_days(input_data):
     raise NotImplementedError
+
+def check_age_bins(hosp_age_bin,pop_age_bin):
+    lower_hosp = []
+    upper_hosp = []
+
+    lower_pop = []
+    upper_pop = []
+
+    if hosp_age_bin == pop_age_bin:
+        pass
+    else:
+        for i in range(len(pop_age_bin)):
+            a = pop_age_bin[i].partition('-')
+
+            try:
+                lower_pop.append(int(a[0]))
+                upper_pop.append(int(a[2]))
+            except ValueError:
+                break
+        for i in range(len(hosp_age_bin)):
+            a = hosp_age_bin[i].partition('-')
+
+            try:                             
+                lower_hosp.append(int(a[0]))
+                upper_hosp.append(int(a[2]))
+            except ValueError:
+                break
+
+    if len(hosp_age_bin)>len(pop_age_bin):
+        if len(set(lower_pop) & set(lower_hosp)) == len(lower_pop) or len(set(upper_pop) & set(upper_hosp)) == len(upper_pop):
+            print('Compatible')
+            status = True
+        else:
+            raise ValueError('Age bins incompatible')
+    elif len(hosp_age_bin)<len(pop_age_bin):
+        if len(set(lower_pop) & set(lower_hosp)) == len(lower_hosp) or len(set(upper_pop) & set(upper_hosp)) == len(upper_hosp):
+            print('Compatible')
+            status = True
+        else:
+            raise ValueError('Age bins incompatible')
+    return status
