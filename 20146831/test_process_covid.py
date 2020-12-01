@@ -1,5 +1,5 @@
 import pytest
-from process_covid import load_covid_data,create_confirmed_plot,check_age_bins,hospital_vs_confirmed
+from process_covid import load_covid_data,create_confirmed_plot,check_age_bins,hospital_vs_confirmed,generate_data_plot_confirmed
 from pathlib import Path
 import json
 
@@ -25,5 +25,7 @@ def test_missing_data_hosp_vs_confirmed():
     data_er = load_covid_data(data_directory / data_file)
     hospital_vs_confirmed(data_er)
     
-
+def test_wrong_input_generate_data_plot_confirmed():
+    with pytest.raises(ValueError):
+        generate_data_plot_confirmed([3,4,5],sex=[2,3])
     
