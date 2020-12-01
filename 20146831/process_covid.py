@@ -75,7 +75,7 @@ def hospital_vs_confirmed(data):
             
     return dates_arr,ratios_arr
 
-def generate_data_plot_confirmed(data, sex, max_age, status='total'):
+def generate_data_plot_confirmed(data, sex=[], max_age=[], status='total'):
     """
     At most one of sex or max_age allowed at a time.
     sex: only 'male' or 'female'
@@ -86,7 +86,7 @@ def generate_data_plot_confirmed(data, sex, max_age, status='total'):
     dates_arr = []
     conf_arr = []
         
-    if len(sex)>0:
+    if type(sex)==str and len(sex)>0:
         #Extract dates
         dates = data['evolution'].keys()
         #Loop over dates to create list with cases and list with corresponding dates
@@ -96,7 +96,7 @@ def generate_data_plot_confirmed(data, sex, max_age, status='total'):
             dates_arr.append(date)
             conf_arr.append(new_confirmed)
     
-    elif max_age>0:
+    elif type(max_age)==list and len(max_age)>0:
         #Extract dates
         dates = data['evolution'].keys()
         
@@ -117,7 +117,8 @@ def generate_data_plot_confirmed(data, sex, max_age, status='total'):
             new_confirmed = sum(dat_data['epidemiology']['confirmed'][status]['age'][0:n])
             dates_arr.append(date)
             conf_arr.append(new_confirmed)
-    
+    else:
+        raise ValueError('Incorrect input type for sex (str) or max_age (int or list)')
     return dates_arr,conf_arr
         
 def create_confirmed_plot(input_data, sex=False, max_ages=[], status='total', save=False):
@@ -167,23 +168,24 @@ def create_confirmed_plot(input_data, sex=False, max_ages=[], status='total', sa
     plt.show()
 
 def compute_running_average(input_data, window):
+    if window == 0 or type(window)==float:
+        raise ValueError('Window must be an integer >0')
     if (window%2) == 0:
-        raise ValueError('Window must be an odd number')
+        window = window -1
+    means = []
+    each_side = int((window-1)/2)
+    if input_data.count(None) == 0:
+        pass
     else:
-        means = []
-        each_side = int((window-1)/2)
-        if input_data.count(None) == 0:
-            pass
-        else:
-            input_data = [0 if x is None else x for x in input_data]
+        input_data = [0 if x is None else x for x in input_data]
         
-        for i in range(len(input_data)):
-            data = input_data[(i-each_side):(i+each_side+1)]
-            if len(data)< window:
-                means.append(None)
-            else:
-                mean = sum(data)/len(data)
-                means.append(mean)
+    for i in range(len(input_data)):
+        data = input_data[(i-each_side):(i+each_side+1)]
+        if len(data)< window:
+            means.append(None)
+        else:
+            mean = sum(data)/len(data)
+            means.append(mean)
     return means
 
 def simple_derivative(input_data):

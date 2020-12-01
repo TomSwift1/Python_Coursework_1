@@ -1,5 +1,5 @@
 import pytest
-from process_covid import load_covid_data,create_confirmed_plot,check_age_bins,hospital_vs_confirmed,generate_data_plot_confirmed
+from process_covid import load_covid_data,create_confirmed_plot,check_age_bins,hospital_vs_confirmed,generate_data_plot_confirmed, compute_running_average
 from pathlib import Path
 import json
 
@@ -28,4 +28,9 @@ def test_missing_data_hosp_vs_confirmed():
 def test_wrong_input_generate_data_plot_confirmed():
     with pytest.raises(ValueError):
         generate_data_plot_confirmed([3,4,5],sex=[2,3])
-    
+
+def test_compute_running_average():
+    with pytest.raises(ValueError):
+        compute_running_average([3,4,5,6],window=7.2)
+    with pytest.raises(ValueError):
+        compute_running_average([3,4,5,6],window=0)
