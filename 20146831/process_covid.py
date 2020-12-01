@@ -17,7 +17,7 @@ def cases_per_population_by_age(input_data):
     #Check the binning of hospitalization and population
     hosp_age_bin = input_data['metadata']['age_binning']['hospitalizations']
     pop_age_bin = input_data['metadata']['age_binning']['population']
-    
+    comp = False
     if hosp_age_bin == pop_age_bin:
         pass
     else:
@@ -34,7 +34,7 @@ def cases_per_population_by_age(input_data):
     dates = input_data['evolution'].keys()
     
     #Check whether rebinning is needed
-    if status:
+    if comp:
         #Loop over dates to extract age binned data
         for date in dates:
             dat_data = input_data['evolution'][date]['epidemiology']['confirmed']['total']['age']
@@ -74,7 +74,7 @@ def hospital_vs_confirmed(data):
             
     return dates_arr,ratios_arr
 
-def generate_data_plot_confirmed(data, sex, max_age, status):
+def generate_data_plot_confirmed(data, sex, max_age, status='total'):
     """
     At most one of sex or max_age allowed at a time.
     sex: only 'male' or 'female'
@@ -84,13 +84,6 @@ def generate_data_plot_confirmed(data, sex, max_age, status):
     #Initializae empty lists
     dates_arr = []
     conf_arr = []
-    if status == []:
-        status = 'new'
-        line_style = '--'
-    elif status == 'confirmed':
-        line_style = '-'
-    else:
-         pass
         
     if len(sex)>0:
         #Extract dates
@@ -126,38 +119,42 @@ def generate_data_plot_confirmed(data, sex, max_age, status):
     
     return dates_arr,conf_arr
         
-def create_confirmed_plot(input_data, sex=False, max_ages=[], status=..., save=False):
+def create_confirmed_plot(input_data, sex=False, max_ages=[], status='total', save=False):
     # Check that only sex or age is specified
     bool_1 = sex
     bool_2 = len(max_ages)>0
     if bool_1 & bool_2:
         raise ValueError('Too many inputs only one of sex or max_ages allowed')
-       
+    
+    if status == 'new':
+        line_style = '--'
+    elif status == 'total' or 'confirmed':
+        line_style = '-'
     fig = plt.figure(figsize=(10, 10))
     
     # Only runs when the sex plot is required
     if sex:
         type_plot = 'sex'
         for sex in ['male', 'female']:
-            date,confirmed = generate_data_plot_confirmed(input_data, sex, max_age=0,status=[])
+            date,confirmed = generate_data_plot_confirmed(input_data, sex, max_age=0,status=status)
             if sex == 'male':
-                plt.plot(date, confirmed,label=str(status)+' '+str(sex),color='green')
+                plt.plot(date, confirmed,label=str(status)+' '+str(sex),color='green', ls=line_style)
             elif sex == 'female':
-                plt.plot(date, confirmed,label=str(status)+' '+str(sex),color='purple')
+                plt.plot(date, confirmed,label=str(status)+' '+str(sex),color='purple',ls=line_style)
     
     # Only runs  when the age plot is required
     if bool_2:
         type_plot = 'max_age'
         for age in max_ages:
-            date,confirmed = generate_data_plot_confirmed(input_data, sex=[], max_age = age,status=[])
+            date,confirmed = generate_data_plot_confirmed(input_data, sex=[], max_age = age,status=status)
             if age <= 25:
-                plt.plot(date, confirmed,label=str(status)+' Age <' +str(age),color='green')
+                plt.plot(date, confirmed,label=str(status)+' Age <' +str(age),color='green',ls=line_style)
             elif age <= 50:
-                plt.plot(date, confirmed,label=str(status)+' Age <'+str(age),color='orange')
+                plt.plot(date, confirmed,label=str(status)+' Age <'+str(age),color='orange',ls=line_style)
             elif age <= 75:
-                plt.plot(date, confirmed,label=str(status)+' Age <'+str(age),color='purple')
+                plt.plot(date, confirmed,label=str(status)+' Age <'+str(age),color='purple',ls=line_style)
             else:
-                plt.plot(date, confirmed,label=str(status)+' Age <'+str(age),color='pink')
+                plt.plot(date, confirmed,label=str(status)+' Age <'+str(age),color='pink',ls=line_style)
                 
     fig.autofmt_xdate()  # To show dates nicely
     plt.title('Confirmed cases in ' + str(input_data['region']['name']))
@@ -168,11 +165,38 @@ def create_confirmed_plot(input_data, sex=False, max_ages=[], status=..., save=F
         plt.savefig(str(input_data['region']['name'])+'_evolution_cases_'+str(type_plot)+'.png')
     plt.show()
 
-def compute_running_average(data, window):
-    raise NotImplementedError
+def compute_running_average(input_data, window):
+    if (a%2) == 0:
+        raise ValueError('Window must be an odd number')
+    else:
+        means = []
+        each_side = int((window_size-1)/2)
+        if input_data.count(None) == 0:
+            pass
+        else:
+            input_data = [0 if x is None else x for x in input_data]
+        
+        for i in range(len(input_data)+1):
+            data = input_data[(i-each_side):(i+each_side+1)]
+            if len(data)< window_size:
+                means.append(None)
+            else:
+                mean = sum(data)/len(data)
+                    means.append(mean)
+    return means
 
 def simple_derivative(data):
-    raise NotImplementedError
+    deriv = []
+
+    for i in range(len(input_data)):
+        data = input_data[i-1:i+1]
+        if data.count(None)>= 1:
+            deriv.append(None)
+        elif len(data)<1:
+            deriv.append(None)
+        else:
+            deriv.append(data[1]-data[0])
+    return deriv
 
 def count_high_rain_low_tests_days(input_data):
     raise NotImplementedError
